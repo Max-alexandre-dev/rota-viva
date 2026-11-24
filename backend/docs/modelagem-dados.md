@@ -14,7 +14,7 @@ erDiagram
     processedOperations ||..o{ transferEvents : confirma
 
     coordinators["coordinators"] {
-        uuid id PK
+        bigint id PK "GENERATED ALWAYS AS IDENTITY"
         varchar name
         varchar email UK
         timestamptz created_at
@@ -88,7 +88,7 @@ erDiagram
         uuid operation_id PK
         varchar action_type
         uuid entity_id "Referencia logica, sem FK"
-        uuid coordinator_id FK
+        bigint coordinator_id FK
         varchar request_hash
         integer response_status
         jsonb outcome
