@@ -1,7 +1,8 @@
-# Rota Viva — Modelagem de dados — Etapas 1 e 2
+## Diagrama de entidades e relacionamentos
 
 ```mermaid
 erDiagram
+    coordinators ||..o{ processedOperations : executa
     centers ||--o{ stockBalance : possui
     resources ||--o{ stockBalance : contabiliza
     stockBalance ||..o| needs : possui_parametros
@@ -11,6 +12,13 @@ erDiagram
     transfers ||..o{ transferEvents : registra
     processedOperations ||..o{ stockMovements : confirma
     processedOperations ||..o{ transferEvents : confirma
+
+    coordinators["coordinators"] {
+        uuid id PK
+        varchar name
+        varchar email UK
+        timestamptz created_at
+    }
 
     centers["centers"] {
         uuid id PK
@@ -80,7 +88,7 @@ erDiagram
         uuid operation_id PK
         varchar action_type
         uuid entity_id "Referencia logica, sem FK"
-        varchar actor_ref
+        uuid coordinator_id FK
         varchar request_hash
         integer response_status
         jsonb outcome
