@@ -56,6 +56,29 @@ rota-viva/
 
 ## Como executar
 
+### Dev Container — Linux e Windows
+
+Usa o **VS Code** com a extensão **Dev Containers** e prepare o Docker:
+
+- **Linux:** Docker Engine e Docker Compose, com acesso sem `sudo`.
+- **Windows:** Docker Desktop com WSL 2 e integração com sua distribuição habilitada. Abra o projeto pelo WSL com `code .` (extensão **WSL** no VS Code).
+
+Com o Docker ativo, abra a raiz do projeto no VS Code e use `Ctrl+Shift+P` → **Dev Containers: Reopen in Container**. Aguarde a instalação automática de Java, Maven, Node.js e das dependências; o PostgreSQL inicia junto com o ambiente.
+
+Em dois terminais dentro do contêiner, execute:
+
+```bash
+# Terminal 1 — back-end
+cd /workspaces/rota-viva/backend && mvn spring-boot:run
+
+# Terminal 2 — front-end
+cd /workspaces/rota-viva/frontend && npm run dev
+```
+
+Acesse o front-end em http://localhost:5173 e a API em http://localhost:8080/api/health. Para parar as aplicações, use `Ctrl+C` em cada terminal.
+
+### Execução sem Dev Container
+
 **Frontend** (Node.js LTS):
 
 ```bash

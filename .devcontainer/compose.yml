@@ -1,0 +1,31 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/base:bookworm
+    command: sleep infinity
+    volumes:
+      - ..:/workspaces/rota-viva:cached
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/rota_viva
+      DB_USERNAME: rota_viva
+      DB_PASSWORD: rota_viva_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: rota_viva
+      POSTGRES_USER: rota_viva
+      POSTGRES_PASSWORD: rota_viva_dev
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rota_viva -d rota_viva"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  postgres-data:

@@ -1,0 +1,35 @@
+{
+  "name": "Rota Viva",
+  "dockerComposeFile": "compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/rota-viva",
+  "remoteUser": "vscode",
+  "shutdownAction": "stopCompose",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21",
+      "installMaven": true
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    }
+  },
+  "forwardPorts": [5173, 8080],
+  "portsAttributes": {
+    "5173": { "label": "Frontend — Vite" },
+    "8080": { "label": "Backend — Spring Boot", "onAutoForward": "silent" }
+  },
+  "postCreateCommand": {
+    "frontend": "npm --prefix frontend ci",
+    "backend": "mvn -f backend/pom.xml dependency:go-offline"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vmware.vscode-boot-dev-pack",
+        "Vue.volar"
+      ]
+    }
+  }
+}
