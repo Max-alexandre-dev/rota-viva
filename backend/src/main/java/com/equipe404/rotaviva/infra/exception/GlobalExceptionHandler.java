@@ -12,6 +12,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice(basePackages = "com.equipe404.rotaviva.core")
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -19,39 +20,38 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiError> notFound(NotFoundException exception) {
-        return businessError(HttpStatus.NOT_FOUND, exception);
+        return error(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ApiError> conflict(ConflictException exception) {
-        return businessError(HttpStatus.CONFLICT, exception);
+        return error(HttpStatus.CONFLICT, exception.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> invalidBody(MethodArgumentNotValidException exception) {
-        Map<String, String> details = new TreeMap<>();
+        Map<String, String> fieldErrors = new TreeMap<>();
         exception.getBindingResult().getFieldErrors().forEach(fieldError ->
-                details.putIfAbsent(fieldError.getField(), fieldError.getDefaultMessage()));
-        return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "A requisição contém dados inválidos", details);
+                fieldErrors.putIfAbsent(fieldError.getField(), fieldError.getDefaultMessage()));
+        String message = fieldErrors.isEmpty()
+                ? "A requisição contém dados inválidos"
+                : fieldErrors.entrySet().stream()
+                        .map(entry -> entry.getKey() + ": " + entry.getValue())
+                        .collect(Collectors.joining("; "));
+        return error(HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
     public ResponseEntity<ApiError> malformedRequest(Exception exception) {
-        return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST",
-                "Corpo ou parâmetro da requisição ausente ou inválido", Map.of());
+        return error(HttpStatus.BAD_REQUEST, "Corpo ou parâmetro da requisição ausente ou inválido");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> invalidDomainInput(IllegalArgumentException exception) {
-        return error(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", exception.getMessage(), Map.of());
+        return error(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
-    private ResponseEntity<ApiError> businessError(HttpStatus status, BusinessException exception) {
-        return error(status, exception.getCode(), exception.getMessage(), Map.of());
-    }
-
-    private ResponseEntity<ApiError> error(HttpStatus status, String code, String message,
-                                           Map<String, String> details) {
-        return ResponseEntity.status(status).body(ApiError.of(code, message, details));
+    private ResponseEntity<ApiError> error(HttpStatus status, String message) {
+        return ResponseEntity.status(status).body(ApiError.of(message));
     }
 }
