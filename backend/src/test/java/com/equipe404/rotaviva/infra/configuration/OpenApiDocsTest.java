@@ -27,6 +27,8 @@ class OpenApiDocsTest {
                 .andExpect(jsonPath("$.info.version").value("1.0.0"))
                 .andExpect(jsonPath("$.paths['/api/v1/coordinators'].post.operationId").value("createCoordinator"))
                 .andExpect(jsonPath("$.paths['/api/v1/coordinators/{id}'].put.responses['409']").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/centers'].post.operationId").value("createCenter"))
+                .andExpect(jsonPath("$.paths['/api/v1/centers/{id}'].delete").doesNotExist())
                 .andExpect(jsonPath("$.components.schemas.ApiError").exists());
     }
 
