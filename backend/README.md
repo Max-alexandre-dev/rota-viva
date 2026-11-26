@@ -1,17 +1,41 @@
 # Backend — Rota Viva
 
-**Stack:** Java 21 + Spring Boot. PostgreSQL será configurado quando o modelo de domínio e contrato REST forem aprovados.
+**Stack:** Java 21 + Spring Boot 3.5.7.
 
-Este é somente o esqueleto da API. Contém `GET /api/health` e **não implementa ainda** o controle de estoques, centros ou transferências.
+O backend inclui health check e uma API demonstrativa de transferências. A API usa armazenamento em memória e identifica suas respostas com `storageMode: "DEMO_IN_MEMORY"`.
 
 ```bash
 mvn spring-boot:run
 # http://localhost:8080/api/health
 ```
 
-## Organização prevista
+## API demonstrativa de transferências
 
-`centers`, `resources`, `inventory`, `needs`, `transfers`, `missions` e `shared`. Cada módulo terá suas camadas apropriadas após fechar as regras.
+| Método | Rota | Resultado |
+|---|---|---|
+| GET | `/api/transfers` | Lista transferências |
+| GET | `/api/transfers/{id}` | Consulta uma transferência |
+| POST | `/api/transfers` | Cria proposta (201) |
+| POST | `/api/transfers/{id}/approve` | Aprova e reserva saldo (200) |
+| POST | `/api/transfers/{id}/reject` | Rejeita proposta (200) |
+
+Todos os POSTs exigem `Idempotency-Key` com um UUID. Repetir a chave com o mesmo comando retorna o resultado original; reutilizá-la com outro conteúdo retorna 409. Uma nova chave para uma operação já concluída também retorna 409.
+
+Exemplo de corpo de criação:
+
+```json
+{
+  "originCenterId": "10000000-0000-4000-8000-000000000001",
+  "destinationCenterId": "10000000-0000-4000-8000-000000000002",
+  "resourceId": "20000000-0000-4000-8000-000000000001",
+  "quantity": 25,
+  "reason": "Atender demanda prioritária"
+}
+```
+
+O conjunto sintético reproduzível contém os centros `10000000-0000-4000-8000-000000000001`, `10000000-0000-4000-8000-000000000002` e `10000000-0000-4000-8000-000000000003`, e o recurso `20000000-0000-4000-8000-000000000001`. O terceiro centro tem saldo ofertável de 10 unidades para verificar concorrência.
+
+O estado desaparece ao reiniciar a aplicação e não é compartilhado entre instâncias. A sincronização e idempotência em memória protegem somente esta instância; ainda faltam banco, transações persistentes, bloqueio/versão otimista distribuída e autenticação.
 
 ### Regras para o backend
 
