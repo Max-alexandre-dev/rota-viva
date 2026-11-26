@@ -54,21 +54,9 @@ Criar somente as pastas utilizadas. Enums ficam em `enums`; não criar interface
 
 **Resultado esperado:** dados válidos e persistidos, duplicidade tratada como conflito e histórico preservado.
 
-**Situação:** implementada em `core/coordinators`, com endpoints em `/api/v1/coordinators` (criação, listagem, consulta e edição por `PUT`). O e-mail é normalizado com `strip` e minúsculas. A tabela é gerada pelo Hibernate. Pendências: permissões de acesso (etapa 4; endpoints ainda abertos), documentação Swagger (etapa 2) e política de remoção (nenhuma exclusão exposta).
+**Situação:** implementada em `core/coordinators`, com endpoints em `/api/v1/coordinators` (criação, listagem, consulta e edição por `PUT`). O e-mail é normalizado com `strip` e minúsculas. A tabela é gerada pelo Hibernate. Pendências: permissões de acesso (etapa 11; endpoints ainda abertos), documentação Swagger (etapa 2) e política de remoção (nenhuma exclusão exposta).
 
-## Etapa 4 — Autenticação e autorização JWT
-
-1. Definir autenticação local ou provedor externo conforme [autenticacao-jwt.md](autenticacao-jwt.md).
-2. Ajustar a modelagem e as entidades para credenciais ou vínculo externo, somente conforme a opção escolhida.
-3. Definir provisionamento inicial do coordenador sem abrir cadastro irrestrito.
-4. Configurar Spring Security, validação de assinatura, emissor, público e expiração do JWT.
-5. Implementar login e emissão somente se a autenticação for local; não criar emissão própria para substituir o provedor escolhido.
-6. Proteger endpoints e definir as permissões de cada ação, obtendo a autoria da identidade autenticada.
-7. Testar `401`, `403`, token inválido e acesso autorizado; documentar Bearer no Swagger.
-
-**Resultado esperado:** endpoints protegidos e identidade confiável para registrar operações. Não publicar endpoints mutáveis das etapas anteriores sem proteção. Renovação e recuperação de senha entram apenas se incluídas no escopo.
-
-## Etapa 5 — CRUD de centros
+## Etapa 4 — CRUD de centros
 
 1. Aplicar o passo a passo comum em `core/centers`.
 2. Mapear UUID, nome, região e data de criação.
@@ -78,7 +66,7 @@ Criar somente as pastas utilizadas. Enums ficam em `enums`; não criar interface
 
 **Resultado esperado:** centros disponíveis para estoque e necessidades, sem perda de integridade referencial. Não adicionar status de inativação sem atualizar o contrato e a modelagem.
 
-## Etapa 6 — CRUD de recursos
+## Etapa 5 — CRUD de recursos
 
 1. Aplicar o passo a passo comum em `core/resources`.
 2. Mapear UUID, nome, unidade e peso estimado por unidade; usar `BigDecimal` para o peso.
@@ -88,9 +76,9 @@ Criar somente as pastas utilizadas. Enums ficam em `enums`; não criar interface
 
 **Resultado esperado:** catálogo consistente para estoque, necessidades e transferências.
 
-## Etapa 7 — Estoque e movimentações
+## Etapa 6 — Estoque e movimentações
 
-**Depende de:** centros, recursos e identidade autenticada.
+**Depende de:** centros e recursos. Até a etapa 11, a autoria das operações usa um identificador provisório, substituído pela identidade autenticada.
 
 1. Mapear `stock_balance` com chave composta de centro/recurso e `stock_movements` em `core/inventory`.
 2. Implementar a persistência de `processed_operations` para idempotência, com identificação do autor, hash do comando e resultado. Definir sua responsabilidade compartilhada sem criar CRUD público dessa tabela.
@@ -103,7 +91,7 @@ Criar somente as pastas utilizadas. Enums ficam em `enums`; não criar interface
 
 **Resultado esperado:** saldo rastreável e sem lançamentos duplicados. Não oferecer edição direta do saldo nem exclusão de movimentações como CRUD comum.
 
-## Etapa 8 — Necessidades e reserva mínima
+## Etapa 7 — Necessidades e reserva mínima
 
 **Depende de:** saldo existente para centro/recurso.
 
@@ -117,7 +105,7 @@ Criar somente as pastas utilizadas. Enums ficam em `enums`; não criar interface
 
 **Resultado esperado:** cálculos reproduzíveis, com déficit físico separado de quantidades já comprometidas para o destino.
 
-## Etapa 9 — Sugestões e propostas de transferência
+## Etapa 8 — Sugestões e propostas de transferência
 
 **Depende de:** estoque, necessidades, centros e recursos.
 
@@ -130,7 +118,7 @@ Criar somente as pastas utilizadas. Enums ficam em `enums`; não criar interface
 
 **Resultado esperado:** propostas explicáveis e persistidas, sem alteração antecipada de saldo.
 
-## Etapa 10 — Aprovação, rejeição e cancelamento
+## Etapa 9 — Aprovação, rejeição e cancelamento
 
 1. Mapear eventos de transferência e integrá-los às operações processadas.
 2. Aprovar somente propostas válidas, recalculando disponibilidade e déficit planejável dentro da transação.
@@ -142,7 +130,7 @@ Criar somente as pastas utilizadas. Enums ficam em `enums`; não criar interface
 
 **Resultado esperado:** estados e reservas consistentes. Não expor alteração livre de status ou exclusão de transferências como CRUD comum.
 
-## Etapa 11 — Histórico e consultas operacionais
+## Etapa 10 — Histórico e consultas operacionais
 
 1. Disponibilizar histórico de eventos por transferência e movimentações por centro/recurso, respeitando permissões.
 2. Retornar autoria, datas e dados relevantes sem expor detalhes internos ou conteúdo sensível das operações processadas.
@@ -150,5 +138,17 @@ Criar somente as pastas utilizadas. Enums ficam em `enums`; não criar interface
 4. Consolidar indicadores necessários ao dashboard reutilizando as regras existentes.
 
 **Resultado esperado:** rastreabilidade e consultas coerentes com a operação, sem duplicar fórmulas nos controllers.
+
+## Etapa 11 — Autenticação e autorização JWT
+
+1. Definir autenticação local ou provedor externo conforme [autenticacao-jwt.md](autenticacao-jwt.md).
+2. Ajustar a modelagem e as entidades para credenciais ou vínculo externo, somente conforme a opção escolhida.
+3. Definir provisionamento inicial do coordenador sem abrir cadastro irrestrito.
+4. Configurar Spring Security, validação de assinatura, emissor, público e expiração do JWT.
+5. Implementar login e emissão somente se a autenticação for local; não criar emissão própria para substituir o provedor escolhido.
+6. Proteger endpoints e definir as permissões de cada ação, obtendo a autoria da identidade autenticada.
+7. Testar `401`, `403`, token inválido e acesso autorizado; documentar Bearer no Swagger.
+
+**Resultado esperado:** endpoints protegidos e identidade confiável para registrar operações. Proteger todos os endpoints criados nas etapas anteriores antes de publicá-los. Renovação e recuperação de senha entram apenas se incluídas no escopo.
 
 O roteiro termina no escopo atual da modelagem. Voluntários, missões, retirada, recebimento e operação offline exigem etapas próprias e ampliação explícita do escopo.
