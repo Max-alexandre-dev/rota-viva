@@ -32,7 +32,7 @@ Definir uma única origem de autenticação antes de implementar o login:
 - **Provedor de identidade:** a API valida access tokens emitidos pelo provedor e associa a identidade externa ao coordenador. Em aplicações de navegador, usar o fluxo apropriado do provedor, como Authorization Code com PKCE; não usar ID token como access token da API.
 - **Autenticação local:** validar credenciais no servidor e emitir tokens apenas após autenticação bem-sucedida. Usar os componentes de autenticação do Spring Security e um emissor JWT configurado, como `JwtEncoder`.
 
-A modelagem atual de `coordinators` possui identificador, nome, e-mail e data de criação. Ela não define senha, perfil, conta bloqueada ou vínculo com provedor externo. Qualquer credencial ou associação necessária exige atualização explícita da modelagem e migration. Não tratar somente o e-mail informado pelo cliente como prova de identidade.
+A modelagem atual de `coordinators` possui identificador, nome, e-mail e data de criação. Ela não define senha, perfil, conta bloqueada ou vínculo com provedor externo. Qualquer credencial ou associação necessária exige atualização explícita da modelagem e da entidade. Não tratar somente o e-mail informado pelo cliente como prova de identidade.
 
 Cadastro público, recuperação de senha, refresh tokens e perfis de acesso não são incluídos automaticamente por este documento.
 

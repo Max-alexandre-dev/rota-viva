@@ -46,7 +46,7 @@ A árvore é uma referência de organização, não uma lista de arquivos já ex
 
 `infra/` reúne o suporte técnico compartilhado: `configuration/` para configurações do Spring e `exception/` para o tratamento global de erros HTTP. Integrações técnicas podem receber suas próprias pastas em `infra/` quando necessárias. Regras de negócio e serviços específicos continuam em `core/`.
 
-Migrations Flyway permanecem em `src/main/resources/db/migration`, fora da árvore de pacotes Java.
+O schema do banco é gerado pelo Hibernate a partir das entidades (`spring.jpa.hibernate.ddl-auto: update`). O projeto não usa migrations: tabelas, colunas e constraints são declaradas nas próprias entidades.
 
 Regras obrigatórias:
 
@@ -85,7 +85,7 @@ As entidades podem usar anotações JPA quando a persistência for implementada.
 - Entidades não são retornadas diretamente pela API: usar DTOs.
 - Repositórios podem estender interfaces Spring Data JPA diretamente.
 - Respeitar os tipos e relacionamentos de [modelagem-dados.md](./modelagem-dados.md).
-- Usar migrations Flyway para versionar o schema e suas constraints.
+- Declarar o schema nas entidades: `nullable`, `length`, `unique`, `@UniqueConstraint` e `@Index`. Regras que o Hibernate não gera, como constraints de check, devem ser garantidas na aplicação.
 - Não criar CRUD ou repositório para toda tabela automaticamente.
 
 ### Serviços e regras de negócio
@@ -180,7 +180,7 @@ Os testes devem acompanhar os pacotes das funcionalidades em `src/test/java`.
 | Entidades e regras, sem Spring | Cálculo de disponibilidade, quantidades inválidas, reserva mínima e transições permitidas |
 | Serviços, com repositórios e colaboradores substituídos por fakes/mocks | Coordenação, erros, reenvio de comandos e ausência de efeitos quando a regra rejeita a operação |
 | API | Validação, cabeçalhos, códigos HTTP, payloads e tradução de erros |
-| Integração com PostgreSQL, quando implementado | Migrations, constraints, rollback, versões/bloqueios, aprovação concorrente e idempotência persistente |
+| Integração com PostgreSQL, quando implementado | Schema gerado, constraints, rollback, versões/bloqueios, aprovação concorrente e idempotência persistente |
 
 Mocks não comprovam atomicidade nem concorrência no banco. Testes de persistência devem usar um ambiente PostgreSQL isolado, sem atingir dados reais.
 
@@ -192,7 +192,7 @@ Executar `mvn test` a partir de `backend/` para os testes configurados. Informar
 2. Mover as classes de `transfers/` para `core/transfers/`, nas pastas `controller`, `service`, `dto` e `exception`; colocar configurações e tratamento global de erros em `infra/`.
 3. Mover `Transfer` para `core/transfers/entity`, `TransferStatus` para `core/transfers/enums` e `StockBalance` para `core/inventory/entity`; centralizar as conversões de transferências em `core/transfers/mapper`.
 4. Separar o armazenamento demonstrativo das regras de `TransferService`, mantendo cada responsabilidade na funcionalidade correspondente.
-5. Adicionar repositórios e persistência quando essa etapa for implementada, com migrations e transações nos serviços.
+5. Adicionar repositórios e persistência quando essa etapa for implementada, com o schema gerado pelo Hibernate e transações nos serviços.
 6. Ajustar imports e testes, preservando rotas e comportamento durante a reorganização.
 
 Não misturar uma reorganização de pacotes com mudança silenciosa de regra de negócio. Uma lacuna funcional identificada deve ser tratada explicitamente, com critério de aceite e teste correspondente.

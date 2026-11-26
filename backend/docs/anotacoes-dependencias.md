@@ -11,7 +11,7 @@ Reduzir código repetitivo com anotações, recursos do Java e bibliotecas adequ
 | Spring Web | Controllers REST, JSON e tratamento de erros | Declarado |
 | Spring Data JPA | Repositórios e persistência | Declarado; em uso no cadastro de coordenadores |
 | Bean Validation | Validação declarativa de DTOs | Declarado pelo starter de validação |
-| PostgreSQL e Flyway | Banco e migrations versionadas | Declarados |
+| PostgreSQL | Banco de dados | Declarado; schema gerado pelo Hibernate (`ddl-auto: update`) |
 | Spring Boot Starter Test | Testes com JUnit e Mockito | Declarado |
 | Lombok | Getters e construtores | Declarado, com processador configurado no `maven-compiler-plugin` |
 | MapStruct | Conversão de entidades e DTOs em compilação | Declarado (1.6.3), com `lombok-mapstruct-binding` no processamento de anotações |
@@ -105,7 +105,7 @@ Orientações de persistência:
 - Usar `@Enumerated(EnumType.STRING)` quando o banco armazenar nomes dos enums; preservar compatibilidade ao renomear valores.
 - Usar `@Version` quando houver controle otimista de concorrência definido para a entidade.
 - Definir `@GeneratedValue` conforme o tipo de identificador e a estratégia da modelagem, não por cópia de outro módulo.
-- Manter constraints e schema em migrations; anotações não substituem o versionamento do banco.
+- Declarar o schema nas entidades, que são a fonte do schema gerado pelo Hibernate: `nullable`, `length`, `unique`, `@UniqueConstraint` e `@Index`. Nomear constraints únicas quando o código precisar identificá-las. Regras sem anotação correspondente, como checks, ficam na aplicação.
 - Colocar `@Transactional` no serviço que coordena a operação completa. Considerar rollback e a interceptação do Spring; chamadas internas ao próprio objeto não ativam uma nova interceptação.
 
 Não criar implementações manuais de CRUD quando o Spring Data já atender à necessidade. Consultas e regras específicas continuam explícitas.

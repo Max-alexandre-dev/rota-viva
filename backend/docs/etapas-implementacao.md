@@ -11,7 +11,7 @@ Os CRUDs abaixo são uma sequência proposta de implementação. Confirmar regra
 ## Passo a passo comum de cada CRUD
 
 1. Definir operações necessárias, campos aceitos, permissões, validações e respostas HTTP.
-2. Criar ou ajustar a migration e a entidade em `core/<funcionalidade>/entity`, conforme a modelagem.
+2. Criar ou ajustar a entidade em `core/<funcionalidade>/entity`, conforme a modelagem, declarando colunas, unicidade e índices nas anotações; o Hibernate gera o schema.
 3. Criar o repositório em `repository`; usar métodos derivados simples ou JPQL quando o nome ficar extenso.
 4. Criar DTOs de entrada e saída em `dto`, preferindo records e Bean Validation.
 5. Criar as conversões em `mapper`, sem acesso ao banco ou regras de negócio.
@@ -28,11 +28,11 @@ Criar somente as pastas utilizadas. Enums ficam em `enums`; não criar interface
 1. Inspecionar dependências, configurações, testes e endpoints existentes.
 2. Organizar gradualmente os pacotes em `core/` e `infra/`, preservando comportamento e testes.
 3. Configurar PostgreSQL por variáveis de ambiente e habilitar a persistência hoje desativada.
-4. Configurar Flyway e criar migrations na ordem das chaves estrangeiras; adicionar cada tabela quando necessária à etapa correspondente.
+4. Gerar o schema pelo Hibernate (`spring.jpa.hibernate.ddl-auto: update`) a partir das entidades; adicionar cada entidade quando necessária à etapa correspondente. O projeto não usa migrations.
 5. Definir constraints, índices e estratégia de concorrência para as operações previstas.
 6. Configurar erros HTTP padronizados e as dependências necessárias, sem adicionar bibliotecas apenas por antecipação.
 
-**Resultado esperado:** aplicação inicia com banco, migrations são aplicadas e as falhas de configuração são identificáveis sem expor segredos.
+**Resultado esperado:** aplicação inicia com banco, o schema é gerado a partir das entidades e as falhas de configuração são identificáveis sem expor segredos.
 
 ## Etapa 2 — Swagger e contrato versionado
 
@@ -54,12 +54,12 @@ Criar somente as pastas utilizadas. Enums ficam em `enums`; não criar interface
 
 **Resultado esperado:** dados válidos e persistidos, duplicidade tratada como conflito e histórico preservado.
 
-**Situação:** implementada em `core/coordinators`, com endpoints em `/api/v1/coordinators` (criação, listagem, consulta e edição por `PUT`). O e-mail é normalizado com `strip` e minúsculas. A tabela é gerada pelo Hibernate (`ddl-auto: update`), sem migration. Pendências: permissões de acesso (etapa 4; endpoints ainda abertos), documentação Swagger (etapa 2) e política de remoção (nenhuma exclusão exposta).
+**Situação:** implementada em `core/coordinators`, com endpoints em `/api/v1/coordinators` (criação, listagem, consulta e edição por `PUT`). O e-mail é normalizado com `strip` e minúsculas. A tabela é gerada pelo Hibernate. Pendências: permissões de acesso (etapa 4; endpoints ainda abertos), documentação Swagger (etapa 2) e política de remoção (nenhuma exclusão exposta).
 
 ## Etapa 4 — Autenticação e autorização JWT
 
 1. Definir autenticação local ou provedor externo conforme [autenticacao-jwt.md](autenticacao-jwt.md).
-2. Ajustar a modelagem e as migrations para credenciais ou vínculo externo, somente conforme a opção escolhida.
+2. Ajustar a modelagem e as entidades para credenciais ou vínculo externo, somente conforme a opção escolhida.
 3. Definir provisionamento inicial do coordenador sem abrir cadastro irrestrito.
 4. Configurar Spring Security, validação de assinatura, emissor, público e expiração do JWT.
 5. Implementar login e emissão somente se a autenticação for local; não criar emissão própria para substituir o provedor escolhido.
