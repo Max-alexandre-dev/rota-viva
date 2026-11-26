@@ -9,12 +9,12 @@ Reduzir código repetitivo com anotações, recursos do Java e bibliotecas adequ
 | Recurso | Uso | Situação no `pom.xml` inspecionado |
 |---|---|---|
 | Spring Web | Controllers REST, JSON e tratamento de erros | Declarado |
-| Spring Data JPA | Repositórios e persistência | Declarado; persistência ainda não ativada na configuração atual |
+| Spring Data JPA | Repositórios e persistência | Declarado; em uso no cadastro de coordenadores |
 | Bean Validation | Validação declarativa de DTOs | Declarado pelo starter de validação |
 | PostgreSQL e Flyway | Banco e migrations versionadas | Declarados |
 | Spring Boot Starter Test | Testes com JUnit e Mockito | Declarado |
-| Lombok | Getters e construtores | Proposto; ainda não declarado |
-| MapStruct | Conversão de entidades e DTOs em compilação | Opcional; ainda não declarado |
+| Lombok | Getters e construtores | Declarado, com processador configurado no `maven-compiler-plugin` |
+| MapStruct | Conversão de entidades e DTOs em compilação | Declarado (1.6.3), com `lombok-mapstruct-binding` no processamento de anotações |
 
 Priorizar os recursos já disponíveis. Adotar Lombok para código mecânico e MapStruct quando a quantidade ou complexidade das conversões justificar. Este documento não instala dependências.
 

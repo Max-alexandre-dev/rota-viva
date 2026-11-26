@@ -54,6 +54,8 @@ Criar somente as pastas utilizadas. Enums ficam em `enums`; não criar interface
 
 **Resultado esperado:** dados válidos e persistidos, duplicidade tratada como conflito e histórico preservado.
 
+**Situação:** implementada em `core/coordinators`, com endpoints em `/api/v1/coordinators` (criação, listagem, consulta e edição por `PUT`). O e-mail é normalizado com `strip` e minúsculas. A tabela é gerada pelo Hibernate (`ddl-auto: update`), sem migration. Pendências: permissões de acesso (etapa 4; endpoints ainda abertos), documentação Swagger (etapa 2) e política de remoção (nenhuma exclusão exposta).
+
 ## Etapa 4 — Autenticação e autorização JWT
 
 1. Definir autenticação local ou provedor externo conforme [autenticacao-jwt.md](autenticacao-jwt.md).
