@@ -11,11 +11,16 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface CenterMapper {
 
+    @Mapping(target = "coordinatorId", source = "coordinator.id")
     CenterResponse toResponse(Center center);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "coordinator", ignore = true)
     Center toEntity(CenterRequest request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "coordinator", ignore = true)
     void updateEntity(CenterRequest request, @MappingTarget Center center);
 }

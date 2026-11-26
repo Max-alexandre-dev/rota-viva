@@ -9,7 +9,7 @@ class CenterRequestTest {
 
     @Test
     void stripsNameAndRegion() {
-        CenterRequest request = new CenterRequest("  Centro Norte ", " Zona Norte  ");
+        CenterRequest request = new CenterRequest("  Centro Norte ", " Zona Norte  ", 1L);
 
         assertEquals("Centro Norte", request.name());
         assertEquals("Zona Norte", request.region());
@@ -17,7 +17,7 @@ class CenterRequestTest {
 
     @Test
     void keepsNullsForBeanValidation() {
-        CenterRequest request = new CenterRequest(null, null);
+        CenterRequest request = new CenterRequest(null, null, null);
 
         assertNull(request.name());
         assertNull(request.region());

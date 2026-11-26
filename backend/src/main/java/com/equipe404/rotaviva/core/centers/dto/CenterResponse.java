@@ -13,6 +13,8 @@ public record CenterResponse(
         String name,
         @Schema(example = "Zona Norte")
         String region,
+        @Schema(description = "ID do coordenador responsável", example = "1")
+        Long coordinatorId,
         @Schema(description = "Data e hora de criação (UTC)", example = "2026-11-26T22:50:00Z")
         Instant createdAt
 ) {

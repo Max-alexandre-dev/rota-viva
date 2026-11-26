@@ -1,5 +1,6 @@
 package com.equipe404.rotaviva.core.coordinators.controller;
 
+import com.equipe404.rotaviva.core.centers.repository.CenterRepository;
 import com.equipe404.rotaviva.core.coordinators.entity.Coordinator;
 import com.equipe404.rotaviva.core.coordinators.repository.CoordinatorRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -14,6 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -37,9 +40,12 @@ class CoordinatorControllerIntegrationTest {
     private ObjectMapper objectMapper;
     @Autowired
     private CoordinatorRepository repository;
+    @Autowired
+    private CenterRepository centerRepository;
 
     @BeforeEach
     void cleanDatabase() {
+        centerRepository.deleteAll();
         repository.deleteAll();
     }
 
@@ -59,19 +65,20 @@ class CoordinatorControllerIntegrationTest {
         create("Ana", "ana@example.org").andExpect(status().isCreated());
 
         create("Outra Ana", "  ANA@example.org").andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("COORDINATOR_EMAIL_CONFLICT"));
+                .andExpect(jsonPath("$.message").value("Já existe um coordenador com este e-mail"));
     }
 
     @Test
     void rejectsInvalidBody() throws Exception {
         create("", "not-an-email").andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
-                .andExpect(jsonPath("$.details.name", notNullValue()))
-                .andExpect(jsonPath("$.details.email", notNullValue()));
+                .andExpect(jsonPath("$.message", allOf(containsString("name:"), containsString("email:"))))
+                .andExpect(jsonPath("$.code").doesNotExist())
+                .andExpect(jsonPath("$.details").doesNotExist())
+                .andExpect(jsonPath("$.timestamp").doesNotExist());
 
         mockMvc.perform(post(BASE).contentType(MediaType.APPLICATION_JSON).content("{"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+                .andExpect(jsonPath("$.message", notNullValue()));
     }
 
     @Test
@@ -94,7 +101,7 @@ class CoordinatorControllerIntegrationTest {
     void returnsNotFoundAndBadRequestForIds() throws Exception {
         mockMvc.perform(get(BASE + "/{id}", 999_999))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("COORDINATOR_NOT_FOUND"));
+                .andExpect(jsonPath("$.message").value("Coordenador 999999 não encontrado"));
 
         mockMvc.perform(put(BASE + "/{id}", 999_999).contentType(MediaType.APPLICATION_JSON)
                         .content(body("Ana", "ana@example.org")))
@@ -102,7 +109,7 @@ class CoordinatorControllerIntegrationTest {
 
         mockMvc.perform(get(BASE + "/abc"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+                .andExpect(jsonPath("$.message", notNullValue()));
     }
 
     @Test
@@ -126,7 +133,7 @@ class CoordinatorControllerIntegrationTest {
 
         update(brunoId, "Bruno", "Ana@Example.org")
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("COORDINATOR_EMAIL_CONFLICT"));
+                .andExpect(jsonPath("$.message").value("Já existe um coordenador com este e-mail"));
     }
 
     @Test

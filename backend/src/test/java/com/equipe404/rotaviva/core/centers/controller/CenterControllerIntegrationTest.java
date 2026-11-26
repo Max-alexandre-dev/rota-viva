@@ -1,6 +1,8 @@
 package com.equipe404.rotaviva.core.centers.controller;
 
 import com.equipe404.rotaviva.core.centers.repository.CenterRepository;
+import com.equipe404.rotaviva.core.coordinators.entity.Coordinator;
+import com.equipe404.rotaviva.core.coordinators.repository.CoordinatorRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -38,10 +42,16 @@ class CenterControllerIntegrationTest {
     private ObjectMapper objectMapper;
     @Autowired
     private CenterRepository repository;
+    @Autowired
+    private CoordinatorRepository coordinatorRepository;
+
+    private Long coordinatorId;
 
     @BeforeEach
     void cleanDatabase() {
         repository.deleteAll();
+        coordinatorRepository.deleteAll();
+        coordinatorId = newCoordinator("ana@example.org");
     }
 
     @Test
@@ -52,19 +62,31 @@ class CenterControllerIntegrationTest {
                 .andExpect(jsonPath("$.id").value(idOf("Centro Norte").toString()))
                 .andExpect(jsonPath("$.name").value("Centro Norte"))
                 .andExpect(jsonPath("$.region").value("Zona Norte"))
+                .andExpect(jsonPath("$.coordinatorId").value(coordinatorId))
                 .andExpect(jsonPath("$.createdAt", notNullValue()));
+    }
+
+    @Test
+    void rejectsMissingOrUnknownCoordinator() throws Exception {
+        create("Centro Norte", "Zona Norte", null).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", containsString("coordinatorId:")));
+
+        create("Centro Norte", "Zona Norte", 999_999L).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Coordenador 999999 não encontrado"));
+
+        UUID id = createdId("Centro Norte", "Zona Norte");
+        update(id, "Centro Norte", "Zona Norte", 999_999L).andExpect(status().isNotFound());
     }
 
     @Test
     void rejectsInvalidBody() throws Exception {
         create(" ", "x".repeat(121)).andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"))
-                .andExpect(jsonPath("$.details.name", notNullValue()))
-                .andExpect(jsonPath("$.details.region", notNullValue()));
+                .andExpect(jsonPath("$.message", allOf(containsString("name:"), containsString("region:"))))
+                .andExpect(jsonPath("$.code").doesNotExist());
 
         mockMvc.perform(post(BASE).contentType(MediaType.APPLICATION_JSON).content("{"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+                .andExpect(jsonPath("$.message", notNullValue()));
     }
 
     @Test
@@ -89,14 +111,14 @@ class CenterControllerIntegrationTest {
 
         mockMvc.perform(get(BASE + "/{id}", missing))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("CENTER_NOT_FOUND"));
+                .andExpect(jsonPath("$.message").value("Centro " + missing + " não encontrado"));
 
         update(missing, "Centro", "Zona").andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("CENTER_NOT_FOUND"));
+                .andExpect(jsonPath("$.message").value("Centro " + missing + " não encontrado"));
 
         mockMvc.perform(get(BASE + "/not-a-uuid"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+                .andExpect(jsonPath("$.message", notNullValue()));
     }
 
     @Test
@@ -105,15 +127,18 @@ class CenterControllerIntegrationTest {
         UUID id = UUID.fromString(objectMapper.readTree(created).get("id").asText());
         String createdAt = objectMapper.readTree(created).get("createdAt").asText();
 
-        update(id, " Centro Leste ", "Zona Leste")
+        Long otherCoordinatorId = newCoordinator("bruno@example.org");
+
+        update(id, " Centro Leste ", "Zona Leste", otherCoordinatorId)
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.coordinatorId").value(otherCoordinatorId))
                 .andExpect(jsonPath("$.id").value(id.toString()))
                 .andExpect(jsonPath("$.name").value("Centro Leste"))
                 .andExpect(jsonPath("$.region").value("Zona Leste"))
                 .andExpect(jsonPath("$.createdAt").value(createdAt));
 
         update(id, "", "Zona").andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.details.name", notNullValue()));
+                .andExpect(jsonPath("$.message", containsString("name:")));
     }
 
     @Test
@@ -124,12 +149,26 @@ class CenterControllerIntegrationTest {
     }
 
     private ResultActions create(String name, String region) throws Exception {
-        return mockMvc.perform(post(BASE).contentType(MediaType.APPLICATION_JSON).content(body(name, region)));
+        return create(name, region, coordinatorId);
+    }
+
+    private ResultActions create(String name, String region, Long coordinator) throws Exception {
+        return mockMvc.perform(post(BASE).contentType(MediaType.APPLICATION_JSON)
+                .content(body(name, region, coordinator)));
     }
 
     private ResultActions update(UUID id, String name, String region) throws Exception {
+        return update(id, name, region, coordinatorId);
+    }
+
+    private ResultActions update(UUID id, String name, String region, Long coordinator) throws Exception {
         return mockMvc.perform(put(BASE + "/{id}", id).contentType(MediaType.APPLICATION_JSON)
-                .content(body(name, region)));
+                .content(body(name, region, coordinator)));
+    }
+
+    private Long newCoordinator(String email) {
+        return coordinatorRepository.saveAndFlush(Coordinator.builder().name("Coordenador").email(email).build())
+                .getId();
     }
 
     private UUID createdId(String name, String region) throws Exception {
@@ -144,7 +183,11 @@ class CenterControllerIntegrationTest {
                 .findFirst().orElseThrow().getId();
     }
 
-    private String body(String name, String region) throws Exception {
-        return objectMapper.writeValueAsString(new LinkedHashMap<>(Map.of("name", name, "region", region)));
+    private String body(String name, String region, Long coordinator) throws Exception {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("name", name);
+        body.put("region", region);
+        body.put("coordinatorId", coordinator);
+        return objectMapper.writeValueAsString(body);
     }
 }

@@ -38,11 +38,13 @@ public class CenterController {
 
     @PostMapping
     @Operation(operationId = "createCenter", summary = "Cadastra um centro",
-            description = "Nome e região são salvos sem espaços nas pontas.")
+            description = "Nome e região são salvos sem espaços nas pontas. O coordenador informado deve existir.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Centro criado",
                     headers = @Header(name = "Location", description = "URL do centro criado")),
             @ApiResponse(responseCode = "400", description = "Corpo ausente, malformado ou inválido",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Coordenador inexistente",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<CenterResponse> create(@Valid @RequestBody CenterRequest request) {
@@ -67,7 +69,7 @@ public class CenterController {
             @ApiResponse(responseCode = "200", description = "Centro encontrado"),
             @ApiResponse(responseCode = "400", description = "ID não é um UUID válido",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Centro inexistente (`CENTER_NOT_FOUND`)",
+            @ApiResponse(responseCode = "404", description = "Centro inexistente",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public CenterResponse get(@Parameter(description = "ID do centro") @PathVariable UUID id) {
@@ -75,13 +77,13 @@ public class CenterController {
     }
 
     @PutMapping("/{id}")
-    @Operation(operationId = "updateCenter", summary = "Edita nome e região de um centro",
-            description = "Substituição completa: os dois campos são obrigatórios. ID e data de criação não mudam.")
+    @Operation(operationId = "updateCenter", summary = "Edita nome, região e coordenador de um centro",
+            description = "Substituição completa: todos os campos são obrigatórios. ID e data de criação não mudam.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Centro atualizado"),
             @ApiResponse(responseCode = "400", description = "ID ou corpo inválido",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Centro inexistente (`CENTER_NOT_FOUND`)",
+            @ApiResponse(responseCode = "404", description = "Centro ou coordenador inexistente",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public CenterResponse update(@Parameter(description = "ID do centro") @PathVariable UUID id,
