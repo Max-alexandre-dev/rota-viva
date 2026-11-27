@@ -3,7 +3,7 @@ package com.equipe404.rotaviva.infra.exception;
 /** Conflito com o estado atual, como duplicidade, versao ou transicao invalida. Traduzida para 409. */
 public class ConflictException extends BusinessException {
 
-    public ConflictException(String code, String message) {
-        super(code, message);
+    public ConflictException(String message) {
+        super(message);
     }
 }

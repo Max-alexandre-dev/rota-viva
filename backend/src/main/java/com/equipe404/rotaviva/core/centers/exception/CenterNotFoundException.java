@@ -7,6 +7,6 @@ import java.util.UUID;
 public class CenterNotFoundException extends NotFoundException {
 
     public CenterNotFoundException(UUID id) {
-        super("CENTER_NOT_FOUND", "Centro " + id + " não encontrado");
+        super("Centro " + id + " não encontrado");
     }
 }

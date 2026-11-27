@@ -5,6 +5,6 @@ import com.equipe404.rotaviva.infra.exception.NotFoundException;
 public class CoordinatorNotFoundException extends NotFoundException {
 
     public CoordinatorNotFoundException(Long id) {
-        super("COORDINATOR_NOT_FOUND", "Coordenador " + id + " não encontrado");
+        super("Coordenador " + id + " não encontrado");
     }
 }

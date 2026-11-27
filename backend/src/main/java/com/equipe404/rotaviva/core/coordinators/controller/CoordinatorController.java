@@ -43,7 +43,7 @@ public class CoordinatorController {
                     headers = @Header(name = "Location", description = "URL do coordenador criado")),
             @ApiResponse(responseCode = "400", description = "Corpo ausente, malformado ou inválido",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "409", description = "E-mail já cadastrado (`COORDINATOR_EMAIL_CONFLICT`)",
+            @ApiResponse(responseCode = "409", description = "E-mail já cadastrado",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<CoordinatorResponse> create(@Valid @RequestBody CoordinatorRequest request) {
@@ -68,7 +68,7 @@ public class CoordinatorController {
             @ApiResponse(responseCode = "200", description = "Coordenador encontrado"),
             @ApiResponse(responseCode = "400", description = "ID não numérico",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Coordenador inexistente (`COORDINATOR_NOT_FOUND`)",
+            @ApiResponse(responseCode = "404", description = "Coordenador inexistente",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public CoordinatorResponse get(@Parameter(description = "ID do coordenador", example = "1")
@@ -83,9 +83,9 @@ public class CoordinatorController {
             @ApiResponse(responseCode = "200", description = "Coordenador atualizado"),
             @ApiResponse(responseCode = "400", description = "ID ou corpo inválido",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Coordenador inexistente (`COORDINATOR_NOT_FOUND`)",
+            @ApiResponse(responseCode = "404", description = "Coordenador inexistente",
                     content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "409", description = "E-mail de outro coordenador (`COORDINATOR_EMAIL_CONFLICT`)",
+            @ApiResponse(responseCode = "409", description = "E-mail de outro coordenador",
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public CoordinatorResponse update(@Parameter(description = "ID do coordenador", example = "1")
