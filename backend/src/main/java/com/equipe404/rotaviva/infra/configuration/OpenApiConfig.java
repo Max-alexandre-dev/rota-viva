@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(info = @Info(
         title = "Rota Viva API",
-        version = "1.0.0",
+        version = "1.1.1",
         description = "API de gestão de recursos e transferências entre centros de apoio"
 ))
 public class OpenApiConfig {
